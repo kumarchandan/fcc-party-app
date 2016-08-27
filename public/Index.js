@@ -48957,7 +48957,7 @@
 			source: 'VIEW_ACTION',
 			action: action // actionType, data
 		};
-		//
+		// Dispatch
 		this.dispatch(payload);
 	};
 	//
@@ -48966,7 +48966,7 @@
 			source: 'SERVER_ACTION',
 			action: action // actionType, data
 		};
-		//
+		// Dispatch
 		this.dispatch(payload);
 	};
 	
@@ -51185,20 +51185,117 @@
 	
 	var _reactBootstrap = __webpack_require__(/*! react-bootstrap */ 236);
 	
+	var _reactRouterBootstrap = __webpack_require__(/*! react-router-bootstrap */ 487);
+	
 	// Search.react.js
 	
 	var React = __webpack_require__(/*! react */ 3);
 	var SearchActions = __webpack_require__(/*! ../actions/SearchActions */ 507);
+	var SearchStore = __webpack_require__(/*! ../stores/SearchStore */ 519);
 	
 	// Bootstrap elements
 	
+	
+	//
+	var PlaceList = React.createClass({
+	    displayName: 'PlaceList',
+	
+	    //
+	    render: function render() {
+	        var list = this.props.list;
+	        if (list && list.length !== 0) {
+	            var rows = [];
+	            list.forEach(function (place) {
+	                // Create Type Labels
+	                var types = [];
+	                var len = place.types.length;
+	                for (var i = 0; i < len; i++) {
+	                    types.push(React.createElement(
+	                        _reactBootstrap.Label,
+	                        { bsStyle: 'info', key: i },
+	                        place.types[i]
+	                    ));
+	                }
+	                //
+	                rows.push(React.createElement(
+	                    _reactBootstrap.Media,
+	                    { key: place.id },
+	                    React.createElement(
+	                        _reactBootstrap.Media.Left,
+	                        null,
+	                        React.createElement('img', { width: '64', height: '64', src: place.icon, alt: 'Image' })
+	                    ),
+	                    React.createElement(
+	                        _reactBootstrap.Media.Body,
+	                        null,
+	                        React.createElement(
+	                            _reactBootstrap.Media.Heading,
+	                            null,
+	                            place.name
+	                        ),
+	                        React.createElement(
+	                            'p',
+	                            null,
+	                            'Rating: ',
+	                            React.createElement(
+	                                _reactBootstrap.Badge,
+	                                null,
+	                                place.rating
+	                            )
+	                        ),
+	                        React.createElement(
+	                            'p',
+	                            null,
+	                            'Address: ',
+	                            place.formatted_address
+	                        ),
+	                        React.createElement(
+	                            'p',
+	                            null,
+	                            types
+	                        )
+	                    )
+	                ));
+	            });
+	        } else {
+	            return null;
+	        }
+	        //
+	        return React.createElement(
+	            _reactBootstrap.Well,
+	            null,
+	            rows
+	        );
+	    }
+	});
+	
+	//
+	function getSearchStoreData() {
+	    return {
+	        currentSearch: SearchStore.getCurrentSearch()
+	    };
+	}
 	
 	//
 	var Search = React.createClass({
 	    displayName: 'Search',
 	
 	    //
-	    search: function search() {
+	    getInitialState: function getInitialState() {
+	        return getSearchStoreData();
+	    },
+	    componentDidMount: function componentDidMount() {
+	        SearchStore.addChangeListener(this._onChange);
+	    },
+	    componentWillUnmount: function componentWillUnmount() {
+	        SearchStore.removeChangeListener(this._onChange);
+	    },
+	    //
+	    _onChange: function _onChange() {
+	        this.setState(getSearchStoreData());
+	    },
+	    //
+	    _search: function _search() {
 	        //
 	        var location = this.refs.locationStr.value;
 	        //
@@ -51232,7 +51329,7 @@
 	                                React.createElement('input', { type: 'text', ref: 'locationStr', placeholder: 'Type location' }),
 	                                React.createElement(
 	                                    _reactBootstrap.Button,
-	                                    { type: 'button', bsStyle: 'success', onClick: this.search },
+	                                    { type: 'button', bsStyle: 'success', onClick: this._search },
 	                                    'Search'
 	                                )
 	                            )
@@ -51246,7 +51343,7 @@
 	                React.createElement(
 	                    _reactBootstrap.Col,
 	                    { lg: 12 },
-	                    React.createElement(_reactBootstrap.Jumbotron, null)
+	                    React.createElement(PlaceList, { list: this.state.currentSearch })
 	                )
 	            )
 	        );
@@ -51267,6 +51364,7 @@
 	
 	// utils/SearchAPI.js
 	
+	var SearchServerActions = __webpack_require__(/*! ../actions/SearchServerActions */ 520);
 	var request = __webpack_require__(/*! superagent */ 492);
 	
 	module.exports = {
@@ -51281,17 +51379,19 @@
 	            var ll = res.body.data[0].geometry.location; // Lat and Lon Object
 	            ll = JSON.stringify(ll);
 	            //
-	            self.findPlaces(ll);
+	            if (ll) {
+	                self.getPlaces(ll);
+	            }
 	        });
 	    },
 	    // Lookup places using latitude and longitude
-	    findPlaces: function findPlaces(latlon) {
-	        request.get('/api/places?latlon=' + latlon).end(function (err, res) {
+	    getPlaces: function getPlaces(latlng) {
+	        request.get('/api/places?latlng=' + latlng).end(function (err, res) {
 	            //
 	            if (err) throw err;
 	            //
-	            debugger;
 	            console.log(res.body.data);
+	            SearchServerActions.getPlaces(res.body.data);
 	        });
 	    },
 	    // Lookup Places using nextpagetoken
@@ -51361,9 +51461,117 @@
 	module.exports = keyMirror({
 	    GET_LL: null,
 	    GET_LL_RESPONSE: null,
+	    GET_PLACES: null,
+	    GET_PLACES_RESPONSE: null,
 	    NEXT_PLACES: null,
 	    NEXT_PLACES_RESPONSE: null
 	});
+
+/***/ },
+/* 509 */,
+/* 510 */,
+/* 511 */,
+/* 512 */,
+/* 513 */,
+/* 514 */,
+/* 515 */,
+/* 516 */,
+/* 517 */,
+/* 518 */,
+/* 519 */
+/*!***********************************!*\
+  !*** ./src/stores/SearchStore.js ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// stores/SearchStore.js
+	
+	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
+	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 508);
+	
+	var EventEmitter = __webpack_require__(/*! events */ 503).EventEmitter;
+	var _ = __webpack_require__(/*! underscore */ 504);
+	
+	// Store Data
+	var _currentSearch = [];
+	var _myEvents = [];
+	
+	// Load Current Search
+	function loadCurrentSearch(currentSearch) {
+	    _currentSearch = currentSearch;
+	}
+	
+	// Load My events
+	function loadMyEvents(myEvents) {
+	    _myEvents = [];
+	}
+	
+	//
+	var SearchStore = _.extend({}, EventEmitter.prototype, {
+	    //
+	    getCurrentSearch: function getCurrentSearch() {
+	        return _currentSearch;
+	    },
+	    getMyEvents: function getMyEvents() {
+	        return _myEvents;
+	    },
+	    emitChange: function emitChange() {
+	        this.emit('changeSearch');
+	    },
+	    addChangeListener: function addChangeListener(done) {
+	        this.addListener('changeSearch', done);
+	    },
+	    removeChangeListener: function removeChangeListener(done) {
+	        this.removeListener('changeSearch', done);
+	    }
+	});
+	
+	//
+	AppDispatcher.register(function (payload) {
+	    //
+	    var action = payload.action;
+	    switch (action.actionType) {
+	        case SearchConstants.GET_PLACES_RESPONSE:
+	            loadCurrentSearch(action.data);
+	            SearchStore.emitChange();
+	            break;
+	        default:
+	            break;
+	    }
+	    return true;
+	});
+	
+	//
+	module.exports = SearchStore;
+
+/***/ },
+/* 520 */
+/*!********************************************!*\
+  !*** ./src/actions/SearchServerActions.js ***!
+  \********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// SearchServerActions.js
+	
+	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 508);
+	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
+	
+	var SearchServerActions = {
+	    //
+	    getPlaces: function getPlaces(data) {
+	        AppDispatcher.handleServerAction({
+	            actionType: SearchConstants.GET_PLACES_RESPONSE,
+	            data: data
+	        });
+	    }
+	    //
+	};
+	
+	module.exports = SearchServerActions;
 
 /***/ }
 /******/ ]);

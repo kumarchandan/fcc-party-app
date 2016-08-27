@@ -11,7 +11,7 @@ AppDispatcher.handleAction = function(action) {
 		source: 'VIEW_ACTION',
 		action: action			// actionType, data
 	};
-	//
+	// Dispatch
 	this.dispatch(payload)
 }
 //
@@ -20,7 +20,7 @@ AppDispatcher.handleServerAction = function(action) {
 		source: 'SERVER_ACTION',
 		action: action			// actionType, data
 	}
-	//
+	// Dispatch
 	this.dispatch(payload)
 }
 

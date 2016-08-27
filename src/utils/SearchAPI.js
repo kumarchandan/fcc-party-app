@@ -1,5 +1,6 @@
 // utils/SearchAPI.js
 
+var SearchServerActions = require('../actions/SearchServerActions')
 var request = require('superagent')
 
 module.exports = {
@@ -14,17 +15,19 @@ module.exports = {
             var ll = res.body.data[0].geometry.location     // Lat and Lon Object
             ll = JSON.stringify(ll)
             //
-            self.findPlaces(ll)
+            if(ll) {
+                self.getPlaces(ll)
+            }
         })
     },
     // Lookup places using latitude and longitude
-    findPlaces: function(latlon) {
-        request.get('/api/places?latlon='+latlon).end(function(err, res) {
+    getPlaces: function(latlng) {
+        request.get('/api/places?latlng='+latlng).end(function(err, res) {
             //
             if(err) throw err
             //
-            debugger
             console.log(res.body.data)
+            SearchServerActions.getPlaces(res.body.data)
         })
     },
     // Lookup Places using nextpagetoken

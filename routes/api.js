@@ -8,7 +8,7 @@ var access = require('../manager/access')
 
 // GET
 router.get('/ll', access.getLL)
-router.get('/places', access.findPlaces)
+router.get('/places', access.getPlaces)
 router.get('/nextplaces', access.nextPlaces)
 
 // POST

@@ -30,15 +30,14 @@ function getLL(req, res, next) {
 }
 
 // Look for places
-function findPlaces(req, res, next) {
+function getPlaces(req, res, next) {
     //
-    var latlon = JSON.parse(req.query.latlon)
-    debugger
+    var latlng = JSON.parse(req.query.latlng)
     //
-    if(latlon) {
+    if(latlng) {
         var locArr = []
-        locArr.push(latlon.lat)
-        locArr.push(latlon.lng)
+        locArr.push(latlng.lat)
+        locArr.push(latlng.lng)
         //
         googleMapClient.places({
             language: 'en',
@@ -50,7 +49,7 @@ function findPlaces(req, res, next) {
             if(err) throw err
             //
             var data = results.json.results
-            var pagetoken = data.next_page_token
+            var pagetoken = results.json.next_page_token
             //
             res.status(200).json({
                 data: data,
@@ -78,7 +77,7 @@ function nextPlaces(req, res, next) {
             if(err) throw err
             //
             var data = results.json.results
-            var pagetoken = data.next_page_token
+            var pagetoken = results.json.next_page_token
             //
             res.status(200).json({
                 data: data,
@@ -97,7 +96,7 @@ function nextPlaces(req, res, next) {
 //
 module.exports = {
     getLL: getLL,
-    findPlaces: findPlaces,
+    getPlaces: getPlaces,
     nextPlaces: nextPlaces
 }
 
