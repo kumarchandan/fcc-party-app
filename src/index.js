@@ -6,10 +6,11 @@ var ReactDOM = require('react-dom')
 import { Router, Route, browserHistory, hashHistory, IndexRoute } from 'react-router'
 
 var Index = require('./components/Index.react')
+var Search = require('./components/Search.react')
 
 // Utilities
 var AuthAPI = require('./utils/AuthAPI')
-var PollAPI = require('./utils/PollAPI')
+var SearchAPI = require('./utils/SearchAPI')
 
 
 // Init
@@ -21,7 +22,7 @@ function requireAuth(nextState, replace, done) {
     AuthAPI.isLoggedIn(function(result) {
         if(!result) {
             replace({
-                pathname: '/polls',
+                pathname: '/',
                 state: { nextPathname: nextState.location.pathname }
             })
         }
@@ -34,11 +35,8 @@ ReactDOM.render(
     (
         <Router history={hashHistory}>
             <Route path='/' component={Index}>
-                <IndexRoute component={Polls} />
-                <Route path='/polls' component={Polls}></Route>
-                <Route path='/mypolls' component={MyPolls} onEnter={requireAuth}></Route>
-                <Route path='/newpoll' component={NewPoll} onEnter={requireAuth}></Route>
-                <Route path='/polls/:pollID' component={PollDetails}></Route>
+                <IndexRoute component={Search} />
+                <Route path='/search' component={Search}></Route>
             </Route>
         </Router>
     ), document.getElementById('content'))

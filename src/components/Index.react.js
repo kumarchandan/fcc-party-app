@@ -40,7 +40,7 @@ var NavigationBar = React.createClass({
                 <Navbar inverse>
                     <Navbar.Header>
                         <Navbar.Brand>
-                            <a href="#">Vote.app</a>
+                            <a href="#">Nite.life</a>
                         </Navbar.Brand>
                     </Navbar.Header>
                         { this.state.loggedIn ?
@@ -49,10 +49,10 @@ var NavigationBar = React.createClass({
                                 <NavItem eventKey={1}>Home</NavItem>
                             </LinkContainer>
                             <LinkContainer to='/mypolls'>
-                                <NavItem eventKey={2}>My Polls</NavItem>
+                                <NavItem eventKey={2}>My Parties</NavItem>
                             </LinkContainer>
                             <LinkContainer to='/newpoll'>
-                                <NavItem eventKey={3}>New Poll</NavItem>
+                                <NavItem eventKey={3}>New Party</NavItem>
                             </LinkContainer>
                             <NavDropdown eventKey={4} title={this.state.loggedIn.displayName} id='basic-nav-dropdown'>
                                 <MenuItem eventKey={4.1} href='/logout'>Logout</MenuItem>

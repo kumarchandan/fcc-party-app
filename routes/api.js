@@ -3,11 +3,13 @@
 var express = require('express')
 var router = express.Router()
 //
-var query = require('../manager/query')
-var update = require('../manager/update')
 var check = require('../manager/check')
+var access = require('../manager/access')
 
 // GET
+router.get('/ll', access.getLL)
+router.get('/places', access.findPlaces)
+router.get('/nextplaces', access.nextPlaces)
 
 // POST
 
