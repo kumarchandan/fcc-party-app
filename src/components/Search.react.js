@@ -1,6 +1,7 @@
 // Search.react.js
 
 var React = require('react')
+//
 var SearchActions = require('../actions/SearchActions')
 var SearchStore = require('../stores/SearchStore')
 
@@ -8,31 +9,51 @@ var SearchStore = require('../stores/SearchStore')
 import { Grid, Row, Col, Jumbotron, FormGroup, Button, Media, Label, Badge, Well } from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 
+// Load States
+function getSearchStoreData() {
+    return {
+        currentSearch: SearchStore.getCurrentSearch()
+    }
+}
+
 //
 var PlaceList = React.createClass({
     //
+    _handleRsvp: function() {
+        //
+        if(this.props.user) {
+
+        } else {
+            // let the user log in
+            location.href = '/auth/twitter'
+        }
+    },
+    //
     render: function() {
+        //
+        var self = this
+        //
         var list = this.props.list
         if(list && list.length !== 0) {
             var rows = []
             list.forEach(function(place) {
-                // Create Type Labels
-                var types = []
-                var len = place.types.length
-                for(var i = 0; i < len; i++) {
-                    types.push(<Label bsStyle='info' key={i}>{place.types[i]}</Label>)
-                }
                 //
                 rows.push(
                     <Media key={place.id}>
                         <Media.Left>
-                            <img width='64' height='64' src={place.icon} alt='Image' />
+                            <img width='100' height='100' src={place.icon} alt='Image' />
                         </Media.Left>
                         <Media.Body>
                             <Media.Heading>{place.name}</Media.Heading>
-                            <p>Rating: <Badge>{place.rating}</Badge></p>
+                            <p>Rating: <Badge>{place.rating}</Badge>&nbsp;
+                                <Button bsStyle='success' ref='rsvpBtn' onClick={self._handleRsvp}>Going</Button>
+                            </p>
                             <p>Address: {place.formatted_address}</p>
-                            <p>{types}</p>
+                            <p>
+                                <Label bsStyle='info'>
+                                    { (place.opening_hours && place.opening_hours.open_now) ? 'Open now' : 'Not sure..Call them if they are serving..' }
+                                </Label>
+                            </p>
                         </Media.Body>
                     </Media>
                 )
@@ -48,22 +69,25 @@ var PlaceList = React.createClass({
 })
 
 //
-function getSearchStoreData() {
-    return {
-        currentSearch: SearchStore.getCurrentSearch()
-    }
-}
-
-//
 var Search = React.createClass({
     //
     getInitialState: function() {
         return getSearchStoreData()
     },
     componentDidMount: function() {
+        // OnEnter
+        this.refs.locationStr.addEventListener('keyup', function(event) {
+            // if Enter key pressed : 13
+            if(event.keyCode === 13) {
+                document.getElementById('searchBtn').click()
+            }
+        })
+        //
         SearchStore.addChangeListener(this._onChange)
     },
     componentWillUnmount: function() {
+        //
+        this.refs.locationStr.removeEventListener('keyup')
         SearchStore.removeChangeListener(this._onChange)
     },
     //
@@ -84,6 +108,9 @@ var Search = React.createClass({
     },
     //
     render: function() {
+        // Get User info if logged in
+        var user = this.props.user
+        //
         return (
             <Grid>
                 <Row>
@@ -91,8 +118,8 @@ var Search = React.createClass({
                         <Jumbotron>
                             <form>
                                 <FormGroup>
-                                    <input type='text' ref='locationStr'  placeholder="Type location" />
-                                    <Button type='button' bsStyle='success' onClick={this._search} >Search</Button>
+                                    <input id='searchField' type='text' ref='locationStr'  placeholder="Type location" />
+                                    <Button id='searchBtn' ref='searchBtn' type='button' bsStyle='success' onClick={this._search} >Search</Button>
                                 </FormGroup>
                             </form>
                         </Jumbotron>
@@ -100,7 +127,7 @@ var Search = React.createClass({
                 </Row>
                 <Row>
                     <Col lg={12}>
-                        <PlaceList list={this.state.currentSearch} />
+                        <PlaceList list={this.state.currentSearch} user={user} />
                     </Col>
                 </Row>
             </Grid>

@@ -58,24 +58,26 @@
 	
 	var Index = __webpack_require__(/*! ./components/Index.react */ 235);
 	var Search = __webpack_require__(/*! ./components/Search.react */ 505);
+	var MyPlaces = __webpack_require__(/*! ./components/MyPlaces.react */ 511);
 	
 	// Utilities
 	var AuthAPI = __webpack_require__(/*! ./utils/AuthAPI */ 491);
-	var SearchAPI = __webpack_require__(/*! ./utils/SearchAPI */ 506);
 	
 	// Init
-	AuthAPI.isAuthenticated(); // User Login status
+	AuthAPI.isAuthenticated(); // Is user logged in
 	
 	// onEnter callback
 	function requireAuth(nextState, replace, done) {
 	    //
 	    AuthAPI.isLoggedIn(function (result) {
+	        //
 	        if (!result) {
 	            replace({
 	                pathname: '/',
 	                state: { nextPathname: nextState.location.pathname }
 	            });
 	        }
+	        // wait till response comes, then redirect
 	        done();
 	    });
 	}
@@ -88,7 +90,8 @@
 	        _reactRouter.Route,
 	        { path: '/', component: Index },
 	        React.createElement(_reactRouter.IndexRoute, { component: Search }),
-	        React.createElement(_reactRouter.Route, { path: '/search', component: Search })
+	        React.createElement(_reactRouter.Route, { path: '/search', component: Search }),
+	        React.createElement(_reactRouter.Route, { path: '/myplaces', component: MyPlaces, onEnter: requireAuth })
 	    )
 	), document.getElementById('content'));
 
@@ -27475,7 +27478,7 @@
 	// changes
 	function getState() {
 	    return {
-	        loggedIn: AuthStore.getAuthData()
+	        loggedIn: AuthStore.getUser()
 	    };
 	}
 	
@@ -27526,7 +27529,7 @@
 	                    { pullRight: true },
 	                    React.createElement(
 	                        _reactRouterBootstrap.LinkContainer,
-	                        { to: '/polls' },
+	                        { to: '/search' },
 	                        React.createElement(
 	                            _reactBootstrap.NavItem,
 	                            { eventKey: 1 },
@@ -27535,20 +27538,11 @@
 	                    ),
 	                    React.createElement(
 	                        _reactRouterBootstrap.LinkContainer,
-	                        { to: '/mypolls' },
+	                        { to: '/myplaces' },
 	                        React.createElement(
 	                            _reactBootstrap.NavItem,
 	                            { eventKey: 2 },
-	                            'My Parties'
-	                        )
-	                    ),
-	                    React.createElement(
-	                        _reactRouterBootstrap.LinkContainer,
-	                        { to: '/newpoll' },
-	                        React.createElement(
-	                            _reactBootstrap.NavItem,
-	                            { eventKey: 3 },
-	                            'New Party'
+	                            'My Places'
 	                        )
 	                    ),
 	                    React.createElement(
@@ -27565,7 +27559,7 @@
 	                    { pullRight: true },
 	                    React.createElement(
 	                        _reactRouterBootstrap.LinkContainer,
-	                        { to: '/polls' },
+	                        { to: '/search' },
 	                        React.createElement(
 	                            _reactBootstrap.NavItem,
 	                            { eventKey: 1 },
@@ -27579,7 +27573,7 @@
 	                    )
 	                )
 	            ),
-	            this.props.children
+	            React.cloneElement(this.props.children, { user: this.state.loggedIn })
 	        );
 	    }
 	});
@@ -47249,18 +47243,18 @@
 	var _ = __webpack_require__(/*! underscore */ 504);
 	
 	// private data
-	var _profile = null;
+	var _user = false;
 	
 	// helper functions
-	function loadProfile(data) {
-	    _profile = data;
+	function loadUser(data) {
+	    _user = data;
 	}
 	
 	// events - underscore
 	var AuthStore = _.extend({}, EventEmitter.prototype, {
 	    //
-	    getAuthData: function getAuthData() {
-	        return _profile;
+	    getUser: function getUser() {
+	        return _user;
 	    },
 	    //
 	    emitChange: function emitChange() {
@@ -47281,8 +47275,8 @@
 	    var action = payload.action;
 	    //
 	    switch (action.actionType) {
-	        case AuthConstants.IS_AUTHENTICATED:
-	            loadProfile(action.data);
+	        case AuthConstants.IS_AUTHENTICATED_RESPONSE:
+	            loadUser(action.data);
 	            AuthStore.emitChange();
 	            break;
 	        default:
@@ -47304,7 +47298,7 @@
 	
 	// utils/AuthAPI.js
 	var request = __webpack_require__(/*! superagent */ 492);
-	var AuthActions = __webpack_require__(/*! ../actions/AuthActions */ 497);
+	var AuthServerActions = __webpack_require__(/*! ../actions/AuthServerActions */ 512);
 	
 	module.exports = {
 	    //
@@ -47313,14 +47307,14 @@
 	            //
 	            if (err) throw err;
 	            //
-	            AuthActions.isAuthenticated(res.body.data);
+	            AuthServerActions.isAuthenticated(res.body.data);
 	        });
 	    },
 	    isLoggedIn: function isLoggedIn(done) {
 	        request.get('/api/auth').end(function (err, res) {
 	            if (err) throw err;
 	            if (res.body.data) {
-	                done(true);
+	                done(res.body.data);
 	            } else {
 	                done(false);
 	            }
@@ -48905,37 +48899,7 @@
 
 
 /***/ },
-/* 497 */
-/*!************************************!*\
-  !*** ./src/actions/AuthActions.js ***!
-  \************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	// AuthActions.js
-	
-	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
-	var AuthConstants = __webpack_require__(/*! ../constants/AuthConstants */ 502);
-	
-	// Flux Story :)
-	// Action gets the payload(data) and hand it over to Dispatcher
-	// Then Dispatcher takes the payload and dispatches to all the callbacks which are registered in Stores across application
-	// And then Store emits the event about the data changes, so finally the React Views re-renders the data
-	
-	var AuthActions = {
-	    //
-	    isAuthenticated: function isAuthenticated(data) {
-	        AppDispatcher.handleAction({
-	            actionType: AuthConstants.IS_AUTHENTICATED,
-	            data: data
-	        });
-	    }
-	};
-	
-	module.exports = AuthActions;
-
-/***/ },
+/* 497 */,
 /* 498 */
 /*!*****************************************!*\
   !*** ./src/dispatcher/AppDispatcher.js ***!
@@ -49303,7 +49267,8 @@
 	var keyMirror = __webpack_require__(/*! fbjs/lib/keyMirror */ 24);
 	
 	module.exports = keyMirror({
-	    IS_AUTHENTICATED: null
+	    IS_AUTHENTICATED: null,
+	    IS_AUTHENTICATED_RESPONSE: null
 	});
 
 /***/ },
@@ -51190,32 +51155,41 @@
 	// Search.react.js
 	
 	var React = __webpack_require__(/*! react */ 3);
-	var SearchActions = __webpack_require__(/*! ../actions/SearchActions */ 507);
-	var SearchStore = __webpack_require__(/*! ../stores/SearchStore */ 519);
+	//
+	var SearchActions = __webpack_require__(/*! ../actions/SearchActions */ 506);
+	var SearchStore = __webpack_require__(/*! ../stores/SearchStore */ 510);
 	
 	// Bootstrap elements
 	
+	
+	// Load States
+	function getSearchStoreData() {
+	    return {
+	        currentSearch: SearchStore.getCurrentSearch()
+	    };
+	}
 	
 	//
 	var PlaceList = React.createClass({
 	    displayName: 'PlaceList',
 	
 	    //
+	    _handleRsvp: function _handleRsvp() {
+	        //
+	        if (this.props.user) {} else {
+	            // let the user log in
+	            location.href = '/auth/twitter';
+	        }
+	    },
+	    //
 	    render: function render() {
+	        //
+	        var self = this;
+	        //
 	        var list = this.props.list;
 	        if (list && list.length !== 0) {
 	            var rows = [];
 	            list.forEach(function (place) {
-	                // Create Type Labels
-	                var types = [];
-	                var len = place.types.length;
-	                for (var i = 0; i < len; i++) {
-	                    types.push(React.createElement(
-	                        _reactBootstrap.Label,
-	                        { bsStyle: 'info', key: i },
-	                        place.types[i]
-	                    ));
-	                }
 	                //
 	                rows.push(React.createElement(
 	                    _reactBootstrap.Media,
@@ -51223,7 +51197,7 @@
 	                    React.createElement(
 	                        _reactBootstrap.Media.Left,
 	                        null,
-	                        React.createElement('img', { width: '64', height: '64', src: place.icon, alt: 'Image' })
+	                        React.createElement('img', { width: '100', height: '100', src: place.icon, alt: 'Image' })
 	                    ),
 	                    React.createElement(
 	                        _reactBootstrap.Media.Body,
@@ -51241,6 +51215,12 @@
 	                                _reactBootstrap.Badge,
 	                                null,
 	                                place.rating
+	                            ),
+	                            ' ',
+	                            React.createElement(
+	                                _reactBootstrap.Button,
+	                                { bsStyle: 'success', ref: 'rsvpBtn', onClick: self._handleRsvp },
+	                                'Going'
 	                            )
 	                        ),
 	                        React.createElement(
@@ -51252,7 +51232,11 @@
 	                        React.createElement(
 	                            'p',
 	                            null,
-	                            types
+	                            React.createElement(
+	                                _reactBootstrap.Label,
+	                                { bsStyle: 'info' },
+	                                place.opening_hours && place.opening_hours.open_now ? 'Open now' : 'Not sure..Call them if they are serving..'
+	                            )
 	                        )
 	                    )
 	                ));
@@ -51270,13 +51254,6 @@
 	});
 	
 	//
-	function getSearchStoreData() {
-	    return {
-	        currentSearch: SearchStore.getCurrentSearch()
-	    };
-	}
-	
-	//
 	var Search = React.createClass({
 	    displayName: 'Search',
 	
@@ -51285,9 +51262,19 @@
 	        return getSearchStoreData();
 	    },
 	    componentDidMount: function componentDidMount() {
+	        // OnEnter
+	        this.refs.locationStr.addEventListener('keyup', function (event) {
+	            // if Enter key pressed : 13
+	            if (event.keyCode === 13) {
+	                document.getElementById('searchBtn').click();
+	            }
+	        });
+	        //
 	        SearchStore.addChangeListener(this._onChange);
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
+	        //
+	        this.refs.locationStr.removeEventListener('keyup');
 	        SearchStore.removeChangeListener(this._onChange);
 	    },
 	    //
@@ -51308,6 +51295,9 @@
 	    },
 	    //
 	    render: function render() {
+	        // Get User info if logged in
+	        var user = this.props.user;
+	        //
 	        return React.createElement(
 	            _reactBootstrap.Grid,
 	            null,
@@ -51326,10 +51316,10 @@
 	                            React.createElement(
 	                                _reactBootstrap.FormGroup,
 	                                null,
-	                                React.createElement('input', { type: 'text', ref: 'locationStr', placeholder: 'Type location' }),
+	                                React.createElement('input', { id: 'searchField', type: 'text', ref: 'locationStr', placeholder: 'Type location' }),
 	                                React.createElement(
 	                                    _reactBootstrap.Button,
-	                                    { type: 'button', bsStyle: 'success', onClick: this._search },
+	                                    { id: 'searchBtn', ref: 'searchBtn', type: 'button', bsStyle: 'success', onClick: this._search },
 	                                    'Search'
 	                                )
 	                            )
@@ -51343,7 +51333,7 @@
 	                React.createElement(
 	                    _reactBootstrap.Col,
 	                    { lg: 12 },
-	                    React.createElement(PlaceList, { list: this.state.currentSearch })
+	                    React.createElement(PlaceList, { list: this.state.currentSearch, user: user })
 	                )
 	            )
 	        );
@@ -51355,6 +51345,68 @@
 
 /***/ },
 /* 506 */
+/*!**************************************!*\
+  !*** ./src/actions/SearchActions.js ***!
+  \**************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// SearchActions.js
+	
+	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 507);
+	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
+	var SearchAPI = __webpack_require__(/*! ../utils/SearchAPI */ 508);
+	
+	var SearchActions = {
+	    //
+	    getLL: function getLL(location) {
+	        //
+	        AppDispatcher.handleAction({
+	            actionType: SearchConstants.GET_LL
+	        });
+	        //
+	        SearchAPI.getLL(location);
+	    },
+	    //
+	    nextPlaces: function nextPlaces(nextpagetoken) {
+	        //
+	        AppDispatcher.handleAction({
+	            actionType: SearchConstants.NEXT_PLACES
+	        });
+	        //
+	        SearchAPI.nextPlaces(nextpagetoken);
+	    }
+	};
+	
+	//
+	module.exports = SearchActions;
+
+/***/ },
+/* 507 */
+/*!******************************************!*\
+  !*** ./src/constants/SearchConstants.js ***!
+  \******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// SearchConstants.js
+	
+	//
+	var keyMirror = __webpack_require__(/*! fbjs/lib/keyMirror */ 24);
+	//
+	module.exports = keyMirror({
+	    GET_LL: null,
+	    GET_LL_RESPONSE: null,
+	    GET_PLACES: null,
+	    GET_PLACES_RESPONSE: null,
+	    NEXT_PLACES: null,
+	    NEXT_PLACES_RESPONSE: null
+	});
+
+/***/ },
+/* 508 */
 /*!********************************!*\
   !*** ./src/utils/SearchAPI.js ***!
   \********************************/
@@ -51364,7 +51416,7 @@
 	
 	// utils/SearchAPI.js
 	
-	var SearchServerActions = __webpack_require__(/*! ../actions/SearchServerActions */ 520);
+	var SearchServerActions = __webpack_require__(/*! ../actions/SearchServerActions */ 509);
 	var request = __webpack_require__(/*! superagent */ 492);
 	
 	module.exports = {
@@ -51406,79 +51458,34 @@
 	};
 
 /***/ },
-/* 507 */
-/*!**************************************!*\
-  !*** ./src/actions/SearchActions.js ***!
-  \**************************************/
+/* 509 */
+/*!********************************************!*\
+  !*** ./src/actions/SearchServerActions.js ***!
+  \********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	// SearchActions.js
+	// SearchServerActions.js
 	
-	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 508);
+	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 507);
 	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
-	var SearchAPI = __webpack_require__(/*! ../utils/SearchAPI */ 506);
 	
-	var SearchActions = {
+	var SearchServerActions = {
 	    //
-	    getLL: function getLL(location) {
-	        //
-	        AppDispatcher.handleAction({
-	            actionType: SearchConstants.GET_LL
+	    getPlaces: function getPlaces(data) {
+	        AppDispatcher.handleServerAction({
+	            actionType: SearchConstants.GET_PLACES_RESPONSE,
+	            data: data
 	        });
-	        //
-	        SearchAPI.getLL(location);
-	    },
-	    //
-	    nextPlaces: function nextPlaces(nextpagetoken) {
-	        //
-	        AppDispatcher.handleAction({
-	            actionType: SearchConstants.NEXT_PLACES
-	        });
-	        //
-	        SearchAPI.nextPlaces(nextpagetoken);
 	    }
+	    //
 	};
 	
-	//
-	module.exports = SearchActions;
+	module.exports = SearchServerActions;
 
 /***/ },
-/* 508 */
-/*!******************************************!*\
-  !*** ./src/constants/SearchConstants.js ***!
-  \******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	// SearchConstants.js
-	
-	//
-	var keyMirror = __webpack_require__(/*! fbjs/lib/keyMirror */ 24);
-	//
-	module.exports = keyMirror({
-	    GET_LL: null,
-	    GET_LL_RESPONSE: null,
-	    GET_PLACES: null,
-	    GET_PLACES_RESPONSE: null,
-	    NEXT_PLACES: null,
-	    NEXT_PLACES_RESPONSE: null
-	});
-
-/***/ },
-/* 509 */,
-/* 510 */,
-/* 511 */,
-/* 512 */,
-/* 513 */,
-/* 514 */,
-/* 515 */,
-/* 516 */,
-/* 517 */,
-/* 518 */,
-/* 519 */
+/* 510 */
 /*!***********************************!*\
   !*** ./src/stores/SearchStore.js ***!
   \***********************************/
@@ -51489,7 +51496,7 @@
 	// stores/SearchStore.js
 	
 	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
-	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 508);
+	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 507);
 	
 	var EventEmitter = __webpack_require__(/*! events */ 503).EventEmitter;
 	var _ = __webpack_require__(/*! underscore */ 504);
@@ -51547,31 +51554,59 @@
 	module.exports = SearchStore;
 
 /***/ },
-/* 520 */
-/*!********************************************!*\
-  !*** ./src/actions/SearchServerActions.js ***!
-  \********************************************/
+/* 511 */
+/*!******************************************!*\
+  !*** ./src/components/MyPlaces.react.js ***!
+  \******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	// SearchServerActions.js
+	// MyPlaces.react.js
 	
-	var SearchConstants = __webpack_require__(/*! ../constants/SearchConstants */ 508);
-	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
+	var React = __webpack_require__(/*! react */ 3);
 	
-	var SearchServerActions = {
+	var MyPlaces = React.createClass({
+	    displayName: 'MyPlaces',
+	
 	    //
-	    getPlaces: function getPlaces(data) {
+	    render: function render() {
+	        return React.createElement(
+	            'h3',
+	            null,
+	            'My Places'
+	        );
+	    }
+	});
+	
+	//
+	module.exports = MyPlaces;
+
+/***/ },
+/* 512 */
+/*!******************************************!*\
+  !*** ./src/actions/AuthServerActions.js ***!
+  \******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// actions/AuthServerActions.js
+	
+	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
+	var AuthConstants = __webpack_require__(/*! ../constants/AuthConstants */ 502);
+	
+	var AuthServerActions = {
+	    //
+	    isAuthenticated: function isAuthenticated(data) {
 	        AppDispatcher.handleServerAction({
-	            actionType: SearchConstants.GET_PLACES_RESPONSE,
+	            actionType: AuthConstants.IS_AUTHENTICATED_RESPONSE,
 	            data: data
 	        });
 	    }
-	    //
 	};
 	
-	module.exports = SearchServerActions;
+	module.exports = AuthServerActions;
 
 /***/ }
 /******/ ]);

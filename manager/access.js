@@ -1,5 +1,7 @@
 // manager/access.js : External APIs call
 
+var utility = require('./utility')
+
 //
 var googleMapClient = require('@google/maps').createClient({
     key: 'AIzaSyACJE0m7CZa8mQLlVRbVTTwKZlMfa6myPM'
@@ -29,7 +31,7 @@ function getLL(req, res, next) {
     }
 }
 
-// Look for places
+// Get Places
 function getPlaces(req, res, next) {
     //
     var latlng = JSON.parse(req.query.latlng)
@@ -50,11 +52,14 @@ function getPlaces(req, res, next) {
             //
             var data = results.json.results
             var pagetoken = results.json.next_page_token
-            //
-            res.status(200).json({
-                data: data,
-                pagetoken: pagetoken
-            })
+            // Prepare Photos
+            if(data && data.length !== 0) {
+                //
+                res.status(200).json({
+                    data: data,
+                    pagetoken: pagetoken
+                })
+            }
         })
     } else {
         res.status(200).json({
@@ -64,7 +69,7 @@ function getPlaces(req, res, next) {
     }
 }
 
-//
+// Next Places
 function nextPlaces(req, res, next) {
     //
     var pagetoken = req.query.pagetoken

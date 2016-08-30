@@ -9,7 +9,7 @@ var userSchema = new Schema({
     displayName: String,
     email: String,
     password: String,
-    votedPollsId: []
+    rsvpPlaces: []      // place_ids
 })
 
 // create the model for user and expose

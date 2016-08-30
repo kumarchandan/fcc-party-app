@@ -7,18 +7,18 @@ var EventEmitter = require('events').EventEmitter
 var _ = require('underscore')
 
 // private data
-var _profile = null
+var _user = false
 
 // helper functions
-function loadProfile(data) {
-    _profile = data
+function loadUser(data) {
+    _user = data
 }
 
 // events - underscore
 var AuthStore = _.extend({}, EventEmitter.prototype, {
     //
-    getAuthData: function() {
-        return _profile
+    getUser: function() {
+        return _user
     },
     //
     emitChange: function() {
@@ -39,8 +39,8 @@ AppDispatcher.register(function(payload) {
     var action = payload.action
     //
     switch (action.actionType) {
-        case AuthConstants.IS_AUTHENTICATED:
-            loadProfile(action.data)
+        case AuthConstants.IS_AUTHENTICATED_RESPONSE:
+            loadUser(action.data)
             AuthStore.emitChange()
             break
         default:

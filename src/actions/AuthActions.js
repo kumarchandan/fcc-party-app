@@ -2,6 +2,8 @@
 
 var AppDispatcher = require('../dispatcher/AppDispatcher')
 var AuthConstants = require('../constants/AuthConstants')
+var AuthAPI = require('../utils/AuthAPI')
+
 
 // Flux Story :)
 // Action gets the payload(data) and hand it over to Dispatcher
@@ -10,11 +12,12 @@ var AuthConstants = require('../constants/AuthConstants')
 
 var AuthActions = {
     //
-    isAuthenticated: function(data) {
+    isAuthenticated: function() {
         AppDispatcher.handleAction({
             actionType: AuthConstants.IS_AUTHENTICATED,
-            data: data
         })
+        //
+        AuthAPI.isAuthenticated()
     }
 }
 

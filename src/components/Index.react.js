@@ -10,7 +10,7 @@ var AuthStore = require('../stores/AuthStore')
 // changes
 function getState() {
     return {
-        loggedIn: AuthStore.getAuthData()
+        loggedIn: AuthStore.getUser()
     }
 }
 
@@ -45,14 +45,11 @@ var NavigationBar = React.createClass({
                     </Navbar.Header>
                         { this.state.loggedIn ?
                         <Nav pullRight>
-                            <LinkContainer to='/polls'>
+                            <LinkContainer to='/search'>
                                 <NavItem eventKey={1}>Home</NavItem>
                             </LinkContainer>
-                            <LinkContainer to='/mypolls'>
-                                <NavItem eventKey={2}>My Parties</NavItem>
-                            </LinkContainer>
-                            <LinkContainer to='/newpoll'>
-                                <NavItem eventKey={3}>New Party</NavItem>
+                            <LinkContainer to='/myplaces'>
+                                <NavItem eventKey={2}>My Places</NavItem>
                             </LinkContainer>
                             <NavDropdown eventKey={4} title={this.state.loggedIn.displayName} id='basic-nav-dropdown'>
                                 <MenuItem eventKey={4.1} href='/logout'>Logout</MenuItem>
@@ -60,14 +57,14 @@ var NavigationBar = React.createClass({
                         </Nav>
                         :
                         <Nav pullRight>
-                            <LinkContainer to='/polls'>
+                            <LinkContainer to='/search'>
                                 <NavItem eventKey={1}>Home</NavItem>
                             </LinkContainer>
                             <NavItem eventKey={2} href="/auth/twitter">Sign in with Twitter</NavItem>
                         </Nav>
                         }
                 </Navbar>
-                {this.props.children}
+                {React.cloneElement(this.props.children, { user: this.state.loggedIn })}
             </div>
         )
     }
