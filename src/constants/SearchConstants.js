@@ -9,5 +9,6 @@ module.exports = keyMirror({
     GET_PLACES: null,
     GET_PLACES_RESPONSE: null,
     NEXT_PLACES: null,
-    NEXT_PLACES_RESPONSE: null
+    NEXT_PLACES_RESPONSE: null,
+    GET_STORED_SEARCH_RESPONSE: null
 })

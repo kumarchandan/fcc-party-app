@@ -5,7 +5,6 @@ var googleData = require('../config/auth').googleData
 
 // Get Home Page
 router.get('/', function(req, res, next) {
-  console.log(googleData.mapAPIKey)
   res.render('index', { key: googleData.mapAPIKey });
 });
 

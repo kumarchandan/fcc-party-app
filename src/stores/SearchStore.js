@@ -9,10 +9,20 @@ var _ = require('underscore')
 // Store Data
 var _currentSearch = []
 var _myEvents = []
+var _storedSearch = {
+    placeId: null,
+    searchText: null
+}
 
 // Load Current Search
 function loadCurrentSearch(currentSearch) {
     _currentSearch = currentSearch
+}
+
+// Load Stored Search
+function loadStoredSearch(storedSearch) {
+    _storedSearch.placeId = storedSearch.placeId
+    _storedSearch.searchText = storedSearch.searchText
 }
 
 // Load My events
@@ -25,6 +35,9 @@ var SearchStore = _.extend({}, EventEmitter.prototype, {
     //
     getCurrentSearch: function() {
         return _currentSearch
+    },
+    getStoredSearch: function() {
+        return _storedSearch
     },
     getMyEvents: function() {
         return _myEvents
@@ -46,11 +59,15 @@ AppDispatcher.register(function(payload) {
     var action = payload.action
     switch (action.actionType) {
         case SearchConstants.GET_PLACES_RESPONSE:
-            loadCurrentSearch(action.data)
+            loadCurrentSearch(action.data)          // Search Results from API
             SearchStore.emitChange()
-            break;
+            break
+        case SearchConstants.GET_STORED_SEARCH_RESPONSE:
+            loadStoredSearch(action.data)           // Saved Search
+            SearchStore.emitChange()
+            break
         default:
-            break;
+            break
     }
     return true
 })

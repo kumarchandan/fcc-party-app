@@ -38,5 +38,20 @@ module.exports = {
             //
             console.log(res.body.data)
         })
+    },
+    // Get Stored Search
+    getStoredSearch: function() {
+        var self = this
+        request.get('/api/storedsearch').end(function(err, res) {
+            //
+            if(err) throw err
+            //
+            var data = res.body.data
+            if(data.searchText) {
+                self.getLL(data.searchText)
+            } else {
+                return false
+            }
+        })
     }
 }

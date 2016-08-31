@@ -11,9 +11,11 @@ var MyPlaces = require('./components/MyPlaces.react')
 
 // Utilities
 var AuthAPI = require('./utils/AuthAPI')
+var SearchAPI = require('./utils/SearchAPI')
 
 // Init
 AuthAPI.isAuthenticated()   // Is user logged in
+SearchAPI.getStoredSearch() // Stored search data from session
 
 // onEnter callback
 function requireAuth(nextState, replace, done) {

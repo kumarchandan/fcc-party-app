@@ -10,8 +10,14 @@ var SearchServerActions = {
             actionType: SearchConstants.GET_PLACES_RESPONSE,
             data: data
         })
-    }
+    },
     //
+    getStoredSearch: function(data) {
+        AppDispatcher.handleServerAction({
+            actionType: SearchConstants.GET_STORED_SEARCH_RESPONSE,
+            data: data
+        })
+    }
 }
 
 module.exports = SearchServerActions

@@ -13,6 +13,9 @@ function getLL(req, res, next) {
     var location = req.query.location
     //
     if(location) {
+        // Update Session as well
+        req.session.searchText = location
+        //
         googleMapClient.geocode({
             address: location
         }, function(err, response) {
@@ -31,7 +34,7 @@ function getLL(req, res, next) {
     }
 }
 
-// Get Places
+// Get Places by LatLng
 function getPlaces(req, res, next) {
     //
     var latlng = JSON.parse(req.query.latlng)
@@ -97,11 +100,26 @@ function nextPlaces(req, res, next) {
     }
 }
 
+// Get temporary stored data from session
+function getStoredSearch(req, res, next) {
+    //
+    var placeId = req.session.placeId
+    var searchText = req.session.searchText
+    //
+    res.status(200).json({
+        data: {
+            placeId: placeId || null,
+            searchText: searchText || null
+        }
+    })
+}
+
 
 //
 module.exports = {
     getLL: getLL,
     getPlaces: getPlaces,
-    nextPlaces: nextPlaces
+    nextPlaces: nextPlaces,
+    getStoredSearch: getStoredSearch
 }
 

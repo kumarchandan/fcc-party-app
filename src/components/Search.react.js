@@ -12,7 +12,8 @@ import { LinkContainer } from 'react-router-bootstrap'
 // Load States
 function getSearchStoreData() {
     return {
-        currentSearch: SearchStore.getCurrentSearch()
+        currentSearch: SearchStore.getCurrentSearch(),
+        storedSearch: SearchStore.getStoredSearch()
     }
 }
 
@@ -20,12 +21,14 @@ function getSearchStoreData() {
 var PlaceList = React.createClass({
     //
     _handleRsvp: function() {
+        var placeId = null          // TODO: If unauthrorize user clicks, gets logged in and place-rsvp done
+        var searchText = this.props.searchText
         //
         if(this.props.user) {
-
+            
         } else {
-            // let the user log in
-            location.href = '/auth/twitter'
+            // let the user log in and save searchText in session
+            location.href = '/auth/twitter?placeId='+ placeId +'&searchText='+ searchText
         }
     },
     //
@@ -127,7 +130,7 @@ var Search = React.createClass({
                 </Row>
                 <Row>
                     <Col lg={12}>
-                        <PlaceList list={this.state.currentSearch} user={user} />
+                        <PlaceList list={this.state.currentSearch} user={user} searchText={this.refs.locationStr ? this.refs.locationStr.value : null } />
                     </Col>
                 </Row>
             </Grid>

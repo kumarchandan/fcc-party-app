@@ -1,4 +1,4 @@
-# A Party Finder App
+# Your Area, You Party
 
 
 ## UserStory

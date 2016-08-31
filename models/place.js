@@ -5,6 +5,7 @@ var Schema = mongoose.Schema
 
 // Schema : Places
 var placeSchema = new Schema({
+    id: String,
     place_id: String,
     name: String,
     icon: String,

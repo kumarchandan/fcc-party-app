@@ -62,9 +62,11 @@
 	
 	// Utilities
 	var AuthAPI = __webpack_require__(/*! ./utils/AuthAPI */ 491);
+	var SearchAPI = __webpack_require__(/*! ./utils/SearchAPI */ 508);
 	
 	// Init
 	AuthAPI.isAuthenticated(); // Is user logged in
+	SearchAPI.getStoredSearch(); // Stored search data from session
 	
 	// onEnter callback
 	function requireAuth(nextState, replace, done) {
@@ -27568,7 +27570,7 @@
 	                    ),
 	                    React.createElement(
 	                        _reactBootstrap.NavItem,
-	                        { eventKey: 2, href: '/auth/twitter' },
+	                        { eventKey: 2, href: '/auth/twitter/' },
 	                        'Sign in with Twitter'
 	                    )
 	                )
@@ -47298,7 +47300,7 @@
 	
 	// utils/AuthAPI.js
 	var request = __webpack_require__(/*! superagent */ 492);
-	var AuthServerActions = __webpack_require__(/*! ../actions/AuthServerActions */ 512);
+	var AuthServerActions = __webpack_require__(/*! ../actions/AuthServerActions */ 497);
 	
 	module.exports = {
 	    //
@@ -48899,7 +48901,32 @@
 
 
 /***/ },
-/* 497 */,
+/* 497 */
+/*!******************************************!*\
+  !*** ./src/actions/AuthServerActions.js ***!
+  \******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	// actions/AuthServerActions.js
+	
+	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
+	var AuthConstants = __webpack_require__(/*! ../constants/AuthConstants */ 502);
+	
+	var AuthServerActions = {
+	    //
+	    isAuthenticated: function isAuthenticated(data) {
+	        AppDispatcher.handleServerAction({
+	            actionType: AuthConstants.IS_AUTHENTICATED_RESPONSE,
+	            data: data
+	        });
+	    }
+	};
+	
+	module.exports = AuthServerActions;
+
+/***/ },
 /* 498 */
 /*!*****************************************!*\
   !*** ./src/dispatcher/AppDispatcher.js ***!
@@ -51165,7 +51192,8 @@
 	// Load States
 	function getSearchStoreData() {
 	    return {
-	        currentSearch: SearchStore.getCurrentSearch()
+	        currentSearch: SearchStore.getCurrentSearch(),
+	        storedSearch: SearchStore.getStoredSearch()
 	    };
 	}
 	
@@ -51175,10 +51203,12 @@
 	
 	    //
 	    _handleRsvp: function _handleRsvp() {
+	        var placeId = null; // TODO: If unauthrorize user clicks, gets logged in and place-rsvp done
+	        var searchText = this.props.searchText;
 	        //
 	        if (this.props.user) {} else {
-	            // let the user log in
-	            location.href = '/auth/twitter';
+	            // let the user log in and save searchText in session
+	            location.href = '/auth/twitter?placeId=' + placeId + '&searchText=' + searchText;
 	        }
 	    },
 	    //
@@ -51333,7 +51363,7 @@
 	                React.createElement(
 	                    _reactBootstrap.Col,
 	                    { lg: 12 },
-	                    React.createElement(PlaceList, { list: this.state.currentSearch, user: user })
+	                    React.createElement(PlaceList, { list: this.state.currentSearch, user: user, searchText: this.refs.locationStr ? this.refs.locationStr.value : null })
 	                )
 	            )
 	        );
@@ -51402,7 +51432,8 @@
 	    GET_PLACES: null,
 	    GET_PLACES_RESPONSE: null,
 	    NEXT_PLACES: null,
-	    NEXT_PLACES_RESPONSE: null
+	    NEXT_PLACES_RESPONSE: null,
+	    GET_STORED_SEARCH_RESPONSE: null
 	});
 
 /***/ },
@@ -51454,6 +51485,21 @@
 	            //
 	            console.log(res.body.data);
 	        });
+	    },
+	    // Get Stored Search
+	    getStoredSearch: function getStoredSearch() {
+	        var self = this;
+	        request.get('/api/storedsearch').end(function (err, res) {
+	            //
+	            if (err) throw err;
+	            //
+	            var data = res.body.data;
+	            if (data.searchText) {
+	                self.getLL(data.searchText);
+	            } else {
+	                return false;
+	            }
+	        });
 	    }
 	};
 
@@ -51478,8 +51524,14 @@
 	            actionType: SearchConstants.GET_PLACES_RESPONSE,
 	            data: data
 	        });
-	    }
+	    },
 	    //
+	    getStoredSearch: function getStoredSearch(data) {
+	        AppDispatcher.handleServerAction({
+	            actionType: SearchConstants.GET_STORED_SEARCH_RESPONSE,
+	            data: data
+	        });
+	    }
 	};
 	
 	module.exports = SearchServerActions;
@@ -51504,10 +51556,20 @@
 	// Store Data
 	var _currentSearch = [];
 	var _myEvents = [];
+	var _storedSearch = {
+	    placeId: null,
+	    searchText: null
+	};
 	
 	// Load Current Search
 	function loadCurrentSearch(currentSearch) {
 	    _currentSearch = currentSearch;
+	}
+	
+	// Load Stored Search
+	function loadStoredSearch(storedSearch) {
+	    _storedSearch.placeId = storedSearch.placeId;
+	    _storedSearch.searchText = storedSearch.searchText;
 	}
 	
 	// Load My events
@@ -51520,6 +51582,9 @@
 	    //
 	    getCurrentSearch: function getCurrentSearch() {
 	        return _currentSearch;
+	    },
+	    getStoredSearch: function getStoredSearch() {
+	        return _storedSearch;
 	    },
 	    getMyEvents: function getMyEvents() {
 	        return _myEvents;
@@ -51541,7 +51606,11 @@
 	    var action = payload.action;
 	    switch (action.actionType) {
 	        case SearchConstants.GET_PLACES_RESPONSE:
-	            loadCurrentSearch(action.data);
+	            loadCurrentSearch(action.data); // Search Results from API
+	            SearchStore.emitChange();
+	            break;
+	        case SearchConstants.GET_STORED_SEARCH_RESPONSE:
+	            loadStoredSearch(action.data); // Saved Search
 	            SearchStore.emitChange();
 	            break;
 	        default:
@@ -51581,32 +51650,6 @@
 	
 	//
 	module.exports = MyPlaces;
-
-/***/ },
-/* 512 */
-/*!******************************************!*\
-  !*** ./src/actions/AuthServerActions.js ***!
-  \******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	// actions/AuthServerActions.js
-	
-	var AppDispatcher = __webpack_require__(/*! ../dispatcher/AppDispatcher */ 498);
-	var AuthConstants = __webpack_require__(/*! ../constants/AuthConstants */ 502);
-	
-	var AuthServerActions = {
-	    //
-	    isAuthenticated: function isAuthenticated(data) {
-	        AppDispatcher.handleServerAction({
-	            actionType: AuthConstants.IS_AUTHENTICATED_RESPONSE,
-	            data: data
-	        });
-	    }
-	};
-	
-	module.exports = AuthServerActions;
 
 /***/ }
 /******/ ]);

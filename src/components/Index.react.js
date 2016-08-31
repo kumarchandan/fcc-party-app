@@ -60,7 +60,7 @@ var NavigationBar = React.createClass({
                             <LinkContainer to='/search'>
                                 <NavItem eventKey={1}>Home</NavItem>
                             </LinkContainer>
-                            <NavItem eventKey={2} href="/auth/twitter">Sign in with Twitter</NavItem>
+                            <NavItem eventKey={2} href="/auth/twitter/">Sign in with Twitter</NavItem>
                         </Nav>
                         }
                 </Navbar>

@@ -10,6 +10,7 @@ var access = require('../manager/access')
 router.get('/ll', access.getLL)
 router.get('/places', access.getPlaces)
 router.get('/nextplaces', access.nextPlaces)
+router.get('/storedsearch', access.getStoredSearch)
 
 // POST
 
