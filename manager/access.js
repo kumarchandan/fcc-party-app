@@ -1,7 +1,5 @@
 // manager/access.js : External APIs call
 
-var utility = require('./utility')
-
 //
 var googleMapClient = require('@google/maps').createClient({
     key: 'AIzaSyACJE0m7CZa8mQLlVRbVTTwKZlMfa6myPM'
@@ -55,7 +53,7 @@ function getPlaces(req, res, next) {
             //
             var data = results.json.results
             var pagetoken = results.json.next_page_token
-            // Prepare Photos
+            //
             if(data && data.length !== 0) {
                 //
                 res.status(200).json({
@@ -100,26 +98,10 @@ function nextPlaces(req, res, next) {
     }
 }
 
-// Get temporary stored data from session
-function getStoredSearch(req, res, next) {
-    //
-    var placeId = req.session.placeId
-    var searchText = req.session.searchText
-    //
-    res.status(200).json({
-        data: {
-            placeId: placeId || null,
-            searchText: searchText || null
-        }
-    })
-}
-
-
 //
 module.exports = {
     getLL: getLL,
     getPlaces: getPlaces,
-    nextPlaces: nextPlaces,
-    getStoredSearch: getStoredSearch
+    nextPlaces: nextPlaces
 }
 

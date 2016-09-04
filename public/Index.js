@@ -51202,11 +51202,16 @@
 	    displayName: 'PlaceList',
 	
 	    //
-	    _handleRsvp: function _handleRsvp() {
-	        var placeId = null; // TODO: If unauthrorize user clicks, gets logged in and place-rsvp done
-	        var searchText = this.props.searchText;
+	    _handleRsvp: function _handleRsvp(index) {
 	        //
-	        if (this.props.user) {} else {
+	        var divId = 'div_place_id' + index;
+	        var placeId = this.refs[divId].innerHTML || null; // TODO: If unauthrorize user clicks, gets logged in and rsvp should be updated
+	        var searchText = this.props.searchText || null;
+	        //
+	        if (this.props.user) {
+	            // RSVP
+	            SearchActions.doRSVP(this.props.user.username, placeId); // send username and placeId to RSVP
+	        } else {
 	            // let the user log in and save searchText in session
 	            location.href = '/auth/twitter?placeId=' + placeId + '&searchText=' + searchText;
 	        }
@@ -51215,11 +51220,15 @@
 	    render: function render() {
 	        //
 	        var self = this;
+	        // div to get value of RSVPed place
+	        var style = {
+	            display: 'none'
+	        };
 	        //
 	        var list = this.props.list;
 	        if (list && list.length !== 0) {
 	            var rows = [];
-	            list.forEach(function (place) {
+	            list.forEach(function (place, index) {
 	                //
 	                rows.push(React.createElement(
 	                    _reactBootstrap.Media,
@@ -51249,8 +51258,13 @@
 	                            ' ',
 	                            React.createElement(
 	                                _reactBootstrap.Button,
-	                                { bsStyle: 'success', ref: 'rsvpBtn', onClick: self._handleRsvp },
-	                                'Going'
+	                                { bsStyle: 'success', ref: 'rsvpBtn' + index, onClick: self._handleRsvp.bind(self, index) },
+	                                place.count && place.count > 0 ? React.createElement(
+	                                    _reactBootstrap.Badge,
+	                                    null,
+	                                    place.count
+	                                ) : null,
+	                                ' Going'
 	                            )
 	                        ),
 	                        React.createElement(
@@ -51267,6 +51281,11 @@
 	                                { bsStyle: 'info' },
 	                                place.opening_hours && place.opening_hours.open_now ? 'Open now' : 'Not sure..Call them if they are serving..'
 	                            )
+	                        ),
+	                        React.createElement(
+	                            'div',
+	                            { key: place.place_id, ref: 'div_place_id' + index, style: style },
+	                            place.place_id
 	                        )
 	                    )
 	                ));
@@ -51303,8 +51322,6 @@
 	        SearchStore.addChangeListener(this._onChange);
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
-	        //
-	        this.refs.locationStr.removeEventListener('keyup');
 	        SearchStore.removeChangeListener(this._onChange);
 	    },
 	    //
@@ -51346,7 +51363,7 @@
 	                            React.createElement(
 	                                _reactBootstrap.FormGroup,
 	                                null,
-	                                React.createElement('input', { id: 'searchField', type: 'text', ref: 'locationStr', placeholder: 'Type location' }),
+	                                React.createElement('input', { id: 'searchField', type: 'text', ref: 'locationStr', defaultValue: this.state.storedSearch.searchText, placeholder: 'Type location' }),
 	                                React.createElement(
 	                                    _reactBootstrap.Button,
 	                                    { id: 'searchBtn', ref: 'searchBtn', type: 'button', bsStyle: 'success', onClick: this._search },
@@ -51406,6 +51423,14 @@
 	        });
 	        //
 	        SearchAPI.nextPlaces(nextpagetoken);
+	    },
+	    doRSVP: function doRSVP(username, placeId) {
+	        //
+	        AppDispatcher.handleAction({
+	            actionType: SearchConstants.DO_RSVP
+	        });
+	        //
+	        SearchAPI.doRSVP(username, placeId);
 	    }
 	};
 	
@@ -51433,7 +51458,9 @@
 	    GET_PLACES_RESPONSE: null,
 	    NEXT_PLACES: null,
 	    NEXT_PLACES_RESPONSE: null,
-	    GET_STORED_SEARCH_RESPONSE: null
+	    GET_STORED_SEARCH_RESPONSE: null,
+	    DO_RSVP: null,
+	    DO_RSVP_RESPONSE: null
 	});
 
 /***/ },
@@ -51500,6 +51527,15 @@
 	                return false;
 	            }
 	        });
+	    },
+	    // Do RSVP
+	    doRSVP: function doRSVP(username, placeId) {
+	        //
+	        request.post('/api/rsvp').send({ username: username, placeId: placeId }).end(function (err, res) {
+	            if (err) throw err;
+	            //
+	            SearchServerActions.doRSVP(res.body.data);
+	        });
 	    }
 	};
 
@@ -51529,6 +51565,14 @@
 	    getStoredSearch: function getStoredSearch(data) {
 	        AppDispatcher.handleServerAction({
 	            actionType: SearchConstants.GET_STORED_SEARCH_RESPONSE,
+	            data: data
+	        });
+	    },
+	    //
+	    doRSVP: function doRSVP(data) {
+	        // data.count & data.msg
+	        AppDispatcher.handleServerAction({
+	            actionType: SearchConstants.DO_RSVP_RESPONSE,
 	            data: data
 	        });
 	    }
@@ -51577,6 +51621,16 @@
 	    _myEvents = [];
 	}
 	
+	// Update Count
+	function updateCount(data) {
+	    // Update
+	    for (var i = 0; i < _currentSearch.length; i++) {
+	        if (_currentSearch[i].place_id === data.placeId) {
+	            _currentSearch[i].count = data.count;
+	        }
+	    }
+	}
+	
 	//
 	var SearchStore = _.extend({}, EventEmitter.prototype, {
 	    //
@@ -51611,6 +51665,10 @@
 	            break;
 	        case SearchConstants.GET_STORED_SEARCH_RESPONSE:
 	            loadStoredSearch(action.data); // Saved Search
+	            SearchStore.emitChange();
+	            break;
+	        case SearchConstants.DO_RSVP_RESPONSE:
+	            updateCount(action.data); // data -> placeId, count, msg
 	            SearchStore.emitChange();
 	            break;
 	        default:

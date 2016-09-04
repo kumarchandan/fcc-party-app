@@ -30,6 +30,16 @@ function loadMyEvents(myEvents) {
     _myEvents = []
 }
 
+// Update Count
+function updateCount(data) {
+    // Update
+    for(var i = 0; i < _currentSearch.length; i++) {
+        if(_currentSearch[i].place_id === data.placeId) {
+            _currentSearch[i].count = data.count
+        }
+    }
+}
+
 //
 var SearchStore = _.extend({}, EventEmitter.prototype, {
     //
@@ -64,6 +74,10 @@ AppDispatcher.register(function(payload) {
             break
         case SearchConstants.GET_STORED_SEARCH_RESPONSE:
             loadStoredSearch(action.data)           // Saved Search
+            SearchStore.emitChange()
+            break
+        case SearchConstants.DO_RSVP_RESPONSE:
+            updateCount(action.data)                // data -> placeId, count, msg
             SearchStore.emitChange()
             break
         default:

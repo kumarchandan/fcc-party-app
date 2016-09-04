@@ -53,5 +53,14 @@ module.exports = {
                 return false
             }
         })
+    },
+    // Do RSVP
+    doRSVP: function(username, placeId) {
+        //
+        request.post('/api/rsvp').send({ username: username, placeId: placeId }).end(function(err, res) {
+            if(err) throw err
+            //
+            SearchServerActions.doRSVP(res.body.data)
+        })
     }
 }

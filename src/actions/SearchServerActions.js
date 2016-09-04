@@ -17,6 +17,13 @@ var SearchServerActions = {
             actionType: SearchConstants.GET_STORED_SEARCH_RESPONSE,
             data: data
         })
+    },
+    //
+    doRSVP: function(data) {    // data.count & data.msg
+        AppDispatcher.handleServerAction({
+            actionType: SearchConstants.DO_RSVP_RESPONSE,
+            data: data
+        })
     }
 }
 

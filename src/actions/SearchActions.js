@@ -22,6 +22,14 @@ var SearchActions = {
         })
         //
         SearchAPI.nextPlaces(nextpagetoken)
+    },
+    doRSVP: function(username, placeId) {
+        //
+        AppDispatcher.handleAction({
+            actionType: SearchConstants.DO_RSVP
+        })
+        //
+        SearchAPI.doRSVP(username, placeId)
     }
 }
 

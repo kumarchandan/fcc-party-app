@@ -107,7 +107,7 @@ app.use('/error', function(req, res, next) {
   res.render('error')
 })
 
-// Middleware to store user data if user clicks on an event without login
+// Middleware to store user search data if user clicks on an event without login
 app.get('/auth/twitter', function(req, res, next) {
   // Store in session
   req.session.placeId = req.query.placeId || null
@@ -119,7 +119,7 @@ app.get('/auth/twitter', function(req, res, next) {
 app.get('/auth/twitter', passport.authenticate('twitter'))   // route middleware to authenticate requests
 
 // Twitter OAuth Callback
-app.get('/auth/twitter/callback', passport.authenticate('twitter', { failureRedirect: '/error', successRedirect: '/search' }))
+app.get('/auth/twitter/callback', passport.authenticate('twitter', { failureRedirect: '/error', successRedirect: '/' }))
 
 // Logout
 app.get('/logout', function(req, res) {

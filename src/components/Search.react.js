@@ -20,12 +20,15 @@ function getSearchStoreData() {
 //
 var PlaceList = React.createClass({
     //
-    _handleRsvp: function() {
-        var placeId = null          // TODO: If unauthrorize user clicks, gets logged in and place-rsvp done
-        var searchText = this.props.searchText
+    _handleRsvp: function(index) {
+        //
+        var divId = 'div_place_id' + index
+        var placeId = this.refs[divId].innerHTML || null          // TODO: If unauthrorize user clicks, gets logged in and rsvp should be updated
+        var searchText = this.props.searchText || null
         //
         if(this.props.user) {
-            
+            // RSVP
+            SearchActions.doRSVP(this.props.user.username, placeId)     // send username and placeId to RSVP
         } else {
             // let the user log in and save searchText in session
             location.href = '/auth/twitter?placeId='+ placeId +'&searchText='+ searchText
@@ -35,11 +38,15 @@ var PlaceList = React.createClass({
     render: function() {
         //
         var self = this
+        // div to get value of RSVPed place
+        var style = {
+            display: 'none'
+        }
         //
         var list = this.props.list
         if(list && list.length !== 0) {
             var rows = []
-            list.forEach(function(place) {
+            list.forEach(function(place, index) {
                 //
                 rows.push(
                     <Media key={place.id}>
@@ -49,7 +56,9 @@ var PlaceList = React.createClass({
                         <Media.Body>
                             <Media.Heading>{place.name}</Media.Heading>
                             <p>Rating: <Badge>{place.rating}</Badge>&nbsp;
-                                <Button bsStyle='success' ref='rsvpBtn' onClick={self._handleRsvp}>Going</Button>
+                                <Button bsStyle='success' ref={'rsvpBtn'+index} onClick={self._handleRsvp.bind(self, index)}>
+                                    {(place.count && (place.count > 0)) ? <Badge>{place.count}</Badge> : null } Going
+                                </Button>
                             </p>
                             <p>Address: {place.formatted_address}</p>
                             <p>
@@ -57,6 +66,7 @@ var PlaceList = React.createClass({
                                     { (place.opening_hours && place.opening_hours.open_now) ? 'Open now' : 'Not sure..Call them if they are serving..' }
                                 </Label>
                             </p>
+                            <div key={place.place_id} ref={'div_place_id'+index} style={style}>{place.place_id}</div>
                         </Media.Body>
                     </Media>
                 )
@@ -89,8 +99,6 @@ var Search = React.createClass({
         SearchStore.addChangeListener(this._onChange)
     },
     componentWillUnmount: function() {
-        //
-        this.refs.locationStr.removeEventListener('keyup')
         SearchStore.removeChangeListener(this._onChange)
     },
     //
@@ -121,7 +129,7 @@ var Search = React.createClass({
                         <Jumbotron>
                             <form>
                                 <FormGroup>
-                                    <input id='searchField' type='text' ref='locationStr'  placeholder="Type location" />
+                                    <input id='searchField' type='text' ref='locationStr' defaultValue={this.state.storedSearch.searchText}  placeholder="Type location" />
                                     <Button id='searchBtn' ref='searchBtn' type='button' bsStyle='success' onClick={this._search} >Search</Button>
                                 </FormGroup>
                             </form>
