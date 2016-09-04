@@ -19,8 +19,6 @@ function doRSVP(req, res, next) {
                 if(doc && doc.length !== 0) {
                     res.status(200).json({
                         data: {
-                            placeId: placeId,
-                            count: null,
                             msg: 'You already RSVPed pal! :)'
                         }
                     })

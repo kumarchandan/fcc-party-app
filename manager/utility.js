@@ -1,5 +1,7 @@
 // manager/utility.js
 
+var PlaceModel = require('../models/place')
+
 module.exports = {
     //
     getPhotos: function(client, places, done) {
@@ -25,5 +27,29 @@ module.exports = {
                 })
             }
         })
+    },
+    // Insert count
+    getRSVPCount: function(placeId, done) {
+        PlaceModel.aggregate([
+            {
+                $match: {
+                    place_id: placeId
+                }
+            },
+            {
+                $project: {
+                    count: { $size: '$rsvpUsers' }
+                }
+            }
+        ], function(err, num) {
+            if(err) throw err
+            //
+            if(num && num.length !== 0) {
+                done(num[0].count)
+            } else {
+                done(0)
+            }
+        })
     }
+
 }

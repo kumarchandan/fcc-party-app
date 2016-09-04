@@ -1,9 +1,11 @@
 // manager/access.js : External APIs call
 
-//
+var googleKey = require('../config/auth').googleData.mapAPIKey
 var googleMapClient = require('@google/maps').createClient({
-    key: 'AIzaSyACJE0m7CZa8mQLlVRbVTTwKZlMfa6myPM'
+    key: googleKey
 })
+
+var utility = require('./utility')
 
 // Get GeoCode [ Lat, Lon, PlaceId ]
 function getLL(req, res, next) {
@@ -56,9 +58,18 @@ function getPlaces(req, res, next) {
             //
             if(data && data.length !== 0) {
                 //
-                res.status(200).json({
-                    data: data,
-                    pagetoken: pagetoken
+                data.forEach(function(place, index, dataArray) {
+                    // Get RSVP count for each place from DB (if exists)
+                    utility.getRSVPCount(place.place_id, function(count) {
+                        dataArray[index].count = count
+                        //
+                        if(index === data.length - 1) {
+                            res.status(200).json({
+                                data: data,
+                                pagetoken: pagetoken
+                            })
+                        }
+                    })
                 })
             }
         })
